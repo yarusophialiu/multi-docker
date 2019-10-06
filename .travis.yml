@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t yarusophia/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true yarusophia/react-test npm test
+
+after_success:
+  - docker build -t yarusophia/multi-client ./client
+  - docker build -t yarusophia/multi-nginx ./nginx
+  - docker build -t yarusophia/multi-server ./server
+  - docker build -t yarusophia/multi-worker ./worker
+  # log in to docker cli
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  #take images and push them to docker hub
+  - docker push yarusophia/multi-client
+  - docker push yarusophia/multi-nginx
+  - docker push yarusophia/multi-server
+  - docker push yarusophia/multi-worker
